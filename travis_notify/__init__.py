@@ -8,11 +8,13 @@ def root_factory(request):
     return appmaker(conn.root())
 
 
-def main(global_config, **settings):
+def main(global_config, config=None, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    config = Configurator(root_factory=root_factory, settings=settings)
+    if config is None:  # pragma: no cover
+        config = Configurator(root_factory=root_factory, settings=settings)
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
+    config.include('.views')
     config.scan()
     return config.make_wsgi_app()
