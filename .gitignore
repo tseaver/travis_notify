@@ -2,3 +2,6 @@
 *.egg-info
 .tox/
 Data.fs*
+.coverage
+coverage.xml
+nosetests.xml
