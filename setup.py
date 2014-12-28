@@ -9,14 +9,17 @@ with open(os.path.join(here, 'CHANGES.rst')) as f:
     CHANGES = f.read()
 
 requires = [
+    'appendonly>=1.2',
+    'persistent',
     'pyramid',
     'pyramid_chameleon',
     'pyramid_debugtoolbar',
     'pyramid_sendmail',
     'pyramid_tm',
     'pyramid_zodbconn',
+    'repoze.folder',
     'transaction',
-    'ZODB3',
+    'ZODB',
     'waitress',
     ]
 
