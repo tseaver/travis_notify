@@ -70,9 +70,9 @@ class TravisAuthorizationCheck(object):
 
 
 ZF_TEMPLATE = """\
-Status: %(status)s
+Status: %(summary)s
 
-Build: %(build_url)s
+Build: %(build_url)s - %(status_message)s
 
 Reason: push
 
@@ -114,7 +114,7 @@ def generate_notification_mail(context, request, payload):
             status = "FAILED"
         else:
             status = "UNKNOWN"
-    info['status'] = status
+    info['summary'] = status
 
     to = request.registry.settings['travis_notify.recipients']
     subject = '%s: %s [Travis-CI]' % (status, payload['repository']['name'])
