@@ -51,5 +51,7 @@ setup(name='travis_notify',
       entry_points="""\
       [paste.app_factory]
       main = travis_notify:main
+      [paste.filter_app_factory]
+      translogger = travis_notify.translogger:make_filter
       """,
       )
