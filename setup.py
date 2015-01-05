@@ -16,7 +16,7 @@ requires = [
     'pyramid',
     'pyramid_chameleon',
     'pyramid_debugtoolbar',
-    'pyramid_sendmail',
+    'pyramid_mailer',
     'pyramid_tm',
     'pyramid_zodbconn',
     'repoze.folder',
