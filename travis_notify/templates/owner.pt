@@ -1,0 +1,17 @@
+<html metal:use-macro="request.main_template">
+ <body>
+  <div metal:fill-slot="body-description">
+   <p>View recent updates from Travis for ${name}.</p>
+  </div>
+
+  <div class="repos" metal:fill-slot="body-content">
+   <h3> Repositories </h3>
+   <ul>
+    <li tal:repeat="repo repos">
+     <a href="${repo}">${repo}</a>
+    </li>
+   </ul>
+  </div>
+
+ </body>
+</html>

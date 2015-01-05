@@ -1,0 +1,20 @@
+<html metal:use-macro="request.main_template">
+ <body>
+  <div metal:fill-slot="body-description">
+   <p>View recent updates from Travis for ${name}.</p>
+  </div>
+
+  <div class="recent" metal:fill-slot="body-content">
+   <h3> Recent Changes </h3>
+   <ul tal:condition="recent">
+    <li tal:repeat="changeset recent">
+     <a href="${changeset['commit']}">${changeset['commit']}</a>
+    </li>
+   </ul>
+   <p tal:condition="not: recent">
+    <em> No recent changes </em>
+   </p>
+  </div>
+
+ </body>
+</html>

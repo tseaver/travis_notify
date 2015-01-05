@@ -2,8 +2,6 @@
 body {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 300;
-  color: #ffffff;
-  background: #bc2131;
 }
 h1,
 h2,
@@ -26,66 +24,66 @@ p {
 .font-bold {
   font-weight: 700;
 }
-.starter-template {
-  margin-top: 250px;
+.travis-notify {
+  margin-top: 20px;
 }
-.starter-template .content {
+.travis-notify .content {
   margin-left: 10px;
 }
-.starter-template .content h1 {
+.travis-notify .content h1 {
   margin-top: 10px;
   font-size: 60px;
 }
-.starter-template .content h1 .smaller {
+.travis-notify .content h1 .smaller {
   font-size: 40px;
   color: #f2b7bd;
 }
-.starter-template .content .lead {
+.travis-notify .content .lead {
   font-size: 25px;
   color: #f2b7bd;
 }
-.starter-template .content .lead .font-normal {
+.travis-notify .content .lead .font-normal {
   color: #ffffff;
 }
-.starter-template .links {
+.travis-notify .links {
   float: right;
   right: 0;
   margin-top: 125px;
 }
-.starter-template .links ul {
+.travis-notify .links ul {
   display: block;
   padding: 0;
   margin: 0;
 }
-.starter-template .links ul li {
+.travis-notify .links ul li {
   list-style: none;
   display: inline;
   margin: 0 10px;
 }
-.starter-template .links ul li:first-child {
+.travis-notify .links ul li:first-child {
   margin-left: 0;
 }
-.starter-template .links ul li:last-child {
+.travis-notify .links ul li:last-child {
   margin-right: 0;
 }
-.starter-template .links ul li.current-version {
+.travis-notify .links ul li.current-version {
   color: #f2b7bd;
   font-weight: 400;
 }
-.starter-template .links ul li a {
+.travis-notify .links ul li a {
   color: #ffffff;
 }
-.starter-template .links ul li a:hover {
+.travis-notify .links ul li a:hover {
   text-decoration: underline;
 }
-.starter-template .links ul li .icon-muted {
+.travis-notify .links ul li .icon-muted {
   color: #eb8b95;
   margin-right: 5px;
 }
-.starter-template .links ul li:hover .icon-muted {
+.travis-notify .links ul li:hover .icon-muted {
   color: #ffffff;
 }
-.starter-template .copyright {
+.travis-notify .copyright {
   margin-top: 10px;
   font-size: 0.9em;
   color: #f2b7bd;
@@ -94,59 +92,59 @@ p {
   right: 0;
 }
 @media (max-width: 1199px) {
-  .starter-template .content h1 {
+  .travis-notify .content h1 {
     font-size: 45px;
   }
-  .starter-template .content h1 .smaller {
+  .travis-notify .content h1 .smaller {
     font-size: 30px;
   }
-  .starter-template .content .lead {
+  .travis-notify .content .lead {
     font-size: 20px;
   }
 }
 @media (max-width: 991px) {
-  .starter-template {
+  .travis-notify {
     margin-top: 0;
   }
-  .starter-template .logo {
-    margin: 40px auto;
+  .travis-notify .logo {
+    margin: 20px auto;
   }
-  .starter-template .content {
+  .travis-notify .content {
     margin-left: 0;
     text-align: center;
   }
-  .starter-template .content h1 {
+  .travis-notify .content h1 {
     margin-bottom: 20px;
   }
-  .starter-template .links {
+  .travis-notify .links {
     float: none;
     text-align: center;
     margin-top: 60px;
   }
-  .starter-template .copyright {
+  .travis-notify .copyright {
     float: none;
     text-align: center;
   }
 }
 @media (max-width: 767px) {
-  .starter-template .content h1 .smaller {
+  .travis-notify .content h1 .smaller {
     font-size: 25px;
     display: block;
   }
-  .starter-template .content .lead {
+  .travis-notify .content .lead {
     font-size: 16px;
   }
-  .starter-template .links {
+  .travis-notify .links {
     margin-top: 40px;
   }
-  .starter-template .links ul li {
+  .travis-notify .links ul li {
     display: block;
     margin: 0;
   }
-  .starter-template .links ul li .icon-muted {
+  .travis-notify .links ul li .icon-muted {
     display: none;
   }
-  .starter-template .copyright {
+  .travis-notify .copyright {
     margin-top: 20px;
   }
 }

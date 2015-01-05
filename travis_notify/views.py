@@ -2,9 +2,12 @@ from hashlib import sha256
 from json import loads
 
 from pyramid.httpexceptions import HTTPForbidden
+from pyramid.renderers import get_renderer
 from pyramid.view import view_config
 
+from .models import Owner
 from .models import Root
+from .models import Repo
 
 try:
     text_type = unicode
@@ -64,16 +67,11 @@ class TravisAuthorizationCheck(object):
         return True
 
 
-@view_config(context=Root, renderer='templates/homepage.pt')
-def home_page(context, request):
-    return {'owners': list(context.keys())}
-
-
-
-def generate_notification_mail(registry, owner_name, repo_name, payload):
+def generate_notification_mail(context, registry, payload, mailer=None):
     """Generate an e-mail to appropriate address
 
-    Base address on ``owner_name`` / ``repo_name`` (e.g., if owner name
+    ``context`` will be a ``Repo`` instance:  use it to derive the
+    target address / formatter (e.g., if repo's __parent__ name
     is "zopefoundation", send mail to`zope-tests@zope.org``).
 
     ``payload`` is a mapping, as described here:
@@ -91,7 +89,7 @@ def generate_notification_mail(registry, owner_name, repo_name, payload):
              travis_auth_check=None,  # use default key
             )
 def webhook(context, request,
-            mailer=generate_notification_mail,  # testing hook
+            generator=generate_notification_mail,  # testing hook
            ):
     """Process the notification POST from Travis:
 
@@ -100,15 +98,40 @@ def webhook(context, request,
     - Use the slug to find / create the appendonly log based on the repo;
       store the deocded JSON in the log.
 
-    - Delegate mail delivery to ``mailer``.
+    - Delegate mail delivery to ``generator``.
     """
     owner_name, repo_name = request.headers['Travis-Repo-Slug'].split('/')
     owner = context.find_create(owner_name)
     repo = owner.find_create(repo_name)
     payload = loads(request.POST['payload'])
     repo.pushItem(payload)
-    mailer(request.registry, owner_name, repo_name, payload)
+    generator(request.registry, owner_name, repo_name, payload)
+
+
+def get_main_template(request):
+    main_template = get_renderer('templates/main.pt')
+    return main_template.implementation()
+
+
+@view_config(context=Root, renderer='templates/homepage.pt')
+def home_page(context, request):
+    return {'owners': sorted(context.keys())}
+
+
+@view_config(context=Owner, renderer='templates/owner.pt')
+def owner(context, request):
+    return {'name': context.__name__, 'repos': sorted(context.keys())}
+
+
+@view_config(context=Repo, renderer='templates/repo.pt')
+def repo(context, request):
+    return {'name': context.__name__, 'recent': list(context.recent)}
 
 
 def includeme(config):
     config.add_view_predicate('travis_auth_check', TravisAuthorizationCheck)
+    config.add_request_method(callable=get_main_template,
+                              name='main_template',
+                              property=True,
+                              reify=True,
+                             )
