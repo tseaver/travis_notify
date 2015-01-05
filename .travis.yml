@@ -1,0 +1,13 @@
+language: python
+sudo: false
+env:
+    - TOXENV=py34
+    - TOXENV=coverage
+install:
+    - pip install tox
+script:
+    - tox
+notifications:
+    email: false
+    webhooks:
+        - http://lanai.palladion.com:9975/
