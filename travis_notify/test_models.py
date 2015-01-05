@@ -67,6 +67,8 @@ class RepoTests(unittest.TestCase):
     def test_empty(self):
         repo = self._makeOne()
         self.assertEqual(list(repo), [])
+        self.assertEqual(list(repo.recent), [])
+        self.assertEqual(list(repo.archive), [])
 
     def test_w_archive(self):
         from appendonly import AppendStack
@@ -75,7 +77,10 @@ class RepoTests(unittest.TestCase):
         pushed = ['a', 'b', 'c', 'd']
         for push in pushed:
             repo.pushItem(push)
-        self.assertEqual(list(repo), list(reversed(pushed)))
+        rev = list(reversed(pushed))
+        self.assertEqual(list(repo), rev)
+        self.assertEqual(list(repo.recent), rev[:1])
+        self.assertEqual(list(repo.archive), rev[1:])
 
 
 class Test_appmaker(unittest.TestCase):

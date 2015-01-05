@@ -1,3 +1,5 @@
+import itertools
+
 from appendonly import AppendStack
 from appendonly import Archive
 from persistent import Persistent
@@ -36,11 +38,18 @@ class Repo(Persistent):
     def pushItem(self, object):
         self._recent.push(object, self._archive.addLayer)
 
-    def __iter__(self):
+    @property
+    def recent(self):
         for generation, index, item in self._recent:
             yield item
+
+    @property
+    def archive(self):
         for generation, index, item in self._archive:
             yield item
+
+    def __iter__(self):
+        return itertools.chain(self.recent, self.archive)
 
 
 def appmaker(zodb_root):
