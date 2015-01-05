@@ -27,8 +27,9 @@ class TravisAuthorizationCheck(object):
     See:
       http://docs.travis-ci.com/user/notifications/#Authorization-for-Webhooks
 
-    This is really a permission check, mashed up with a short-circuited
-    authentication polciy.
+    .. note::
+       This is really a permission check, mashed up with a short-circuited
+       authentication polciy.
     """
     DEFAULT_TOKEN_KEY = 'travis_notify.token'
 
@@ -47,23 +48,23 @@ class TravisAuthorizationCheck(object):
         auth = request.headers.get('Authorization')
         slug = request.headers.get('Travis-Repo-Slug')
 
-        if auth is None and slug is None:
+        if auth is None and slug is None:  # not for us.
             return False
         
-        if auth is None or slug is None:
+        if auth is None or slug is None:   # bad protocol, no donut!
             raise HTTPForbidden()
 
         mashed = slug + self.token
         if isinstance(mashed, text_type):  # pragma: no cover
             mashed = mashed.encode('utf-8')
 
-        if auth != sha256(mashed).hexdigest():
+        if auth != sha256(mashed).hexdigest():  # wicked, evil, naughty!
             raise HTTPForbidden()
 
         return True
 
 
-@view_config(context=Root, renderer='templates/mytemplate.pt')
+@view_config(context=Root, renderer='templates/homepage.pt')
 def home_page(context, request):
     return {'owners': list(context.keys())}
 
