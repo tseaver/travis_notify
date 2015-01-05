@@ -1,9 +1,11 @@
+from email.message import Message
 from hashlib import sha256
 from json import loads
 
 from pyramid.httpexceptions import HTTPForbidden
 from pyramid.renderers import get_renderer
 from pyramid.view import view_config
+from pyramid_mailer import get_mailer
 
 from .models import Owner
 from .models import Root
@@ -53,7 +55,7 @@ class TravisAuthorizationCheck(object):
 
         if auth is None and slug is None:  # not for us.
             return False
-        
+
         if auth is None or slug is None:   # bad protocol, no donut!
             raise HTTPForbidden()
 
@@ -67,12 +69,29 @@ class TravisAuthorizationCheck(object):
         return True
 
 
-def generate_notification_mail(context, registry, payload, mailer=None):
+ZF_TEMPLATE = """\
+Status: %(status)s
+
+Build: %(build_url)s
+
+Reason: push
+
+Branch: %(branch)s
+
+Commit URL: %(compare_url)s
+Committer: %(committer_name)s <%(committer_email)s>
+Message: %(message)s
+"""
+
+def generate_notification_mail(context, request, payload):
     """Generate an e-mail to appropriate address
 
     ``context`` will be a ``Repo`` instance:  use it to derive the
     target address / formatter (e.g., if repo's __parent__ name
     is "zopefoundation", send mail to`zope-tests@zope.org``).
+
+    ``registry`` is the configurator registry, used to look up the actual
+    mailer, as well as (maybe later) custom formatters based on the context.
 
     ``payload`` is a mapping, as described here:
       http://docs.travis-ci.com/user/notifications/#Webhooks-Delivery-Format
@@ -80,7 +99,32 @@ def generate_notification_mail(context, registry, payload, mailer=None):
     For ZF repos, mail should be formatted following the rules laid down
     here: http://docs.zope.org/zopetoolkit/process/buildbots.html
             #informing-the-zope-developer-community-about-build-results
+
+    ATM, just format for ZF.
     """
+    info = payload.copy()
+    if payload['type'] != 'push':  # don't report PR results
+        return
+
+    if payload['status'] == 0:
+        status = 'OK'
+    else:
+        msg = payload['status_message']
+        if msg.lower() in ('broken', 'failed', 'still failing'):
+            status = "FAILED"
+        else:
+            status = "UNKNOWN"
+    info['status'] = status
+
+    to = request.registry.settings['travis_notify.recipients']
+    subject = '%s: %s [Travis-CI]' % (status, payload['repository']['name'])
+    message = Message()
+    message['From'] = 'travis_notify@palladion.com'
+    message['To'] = to
+    message['Subject'] = subject
+    message.set_payload(ZF_TEMPLATE % info)
+    mailer = get_mailer(request)
+    mailer.send(message)
 
 
 @view_config(context=Root, renderer='json',
@@ -105,7 +149,7 @@ def webhook(context, request,
     repo = owner.find_create(repo_name)
     payload = loads(request.POST['payload'])
     repo.pushItem(payload)
-    generator(request.registry, owner_name, repo_name, payload)
+    generator(context, request, payload)
 
 
 def get_main_template(request):

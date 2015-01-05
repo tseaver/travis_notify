@@ -81,34 +81,204 @@ class Test_generate_notification_mail(unittest.TestCase):
     def tearDown(self):
         testing.tearDown()
 
-    def _callFUT(self, context, request, **kw):
-        from .views import generate_notification_mail
-        return generate_notification_mail(context, request, **kw)
+    def _getMailer(self):
+        from pyramid_mailer.interfaces import IMailer
+        from pyramid_mailer.mailer import DummyMailer
+        mailer = DummyMailer()
+        registry = self.config.registry
+        registry.registerUtility(mailer, IMailer)
+        registry.settings['travis_notify.recipients'] = ['foo@example.com']
+        return mailer
 
-    def test_it(self):
+    def _callFUT(self, context, request, payload):
+        from .views import generate_notification_mail
+        return generate_notification_mail(context, request, payload)
+
+    def test_not_push(self):
+        mailer = self._getMailer()
         root = testing.DummyResource()
         owner = root['owner'] = testing.DummyResource()
         context = root['repo'] = testing.DummyResource()
+        request = testing.DummyRequest()
         payload = {
-            "id": 1,
-            "number": "1",
+            "type": "pull_request",
             "status": 0,
-            "started_at": "2011-11-11T11:11:12Z",
-            "finished_at": "2011-11-11T11:11:13Z",
             "status_message": "Passed",
-            "commit": "62aae5f70ceee39123ef",
+            "build_url": "https://travis-ci.org/owner/repo/builds/1",
             "branch": "master",
-            "message": "the commit message",
             "compare_url":
                 "https://github.com/owner/repo/compare/master...develop",
-            "committed_at": "2011-11-11T11:11:11Z",
             "committer_name": "J. Random Hacker",
             "committer_email": "jrandom@example.com",
-            "author_name": "J. Random Hacker",
-            "author_email": "jrandom@example.com",
-            "type": "push",
-            "build_url": "https://travis-ci.org/owner/repo/builds/1",
+            "message": "the commit message",
+            "repository": {
+                "name": "repo",
+            }
         }
+        self._callFUT(context, request, payload)
+        self.assertEqual(len(mailer.outbox), 0)
+
+    def test_UNKNOWN_pending(self):
+        mailer = self._getMailer()
+        root = testing.DummyResource()
+        owner = root['owner'] = testing.DummyResource()
+        context = root['repo'] = testing.DummyResource()
+        request = testing.DummyRequest()
+        payload = {
+            "type": "push",
+            "status": 1,
+            "status_message": "Pending",
+            "build_url": "https://travis-ci.org/owner/repo/builds/1",
+            "branch": "master",
+            "compare_url":
+                "https://github.com/owner/repo/compare/master...develop",
+            "committer_name": "J. Random Hacker",
+            "committer_email": "jrandom@example.com",
+            "message": "the commit message",
+            "repository": {
+                "name": "repo",
+            }
+        }
+        self._callFUT(context, request, payload)
+        self.assertEqual(len(mailer.outbox), 1)
+        message = mailer.outbox[0]
+        self.assertEqual(message['To'], ['foo@example.com'])
+        self.assertEqual(message['Subject'], 'UNKNOWN: repo [Travis-CI]')
+
+    def test_OK_passed(self):
+        mailer = self._getMailer()
+        root = testing.DummyResource()
+        owner = root['owner'] = testing.DummyResource()
+        context = root['repo'] = testing.DummyResource()
+        request = testing.DummyRequest()
+        payload = {
+            "type": "push",
+            "status": 0,
+            "status_message": "Passed",
+            "build_url": "https://travis-ci.org/owner/repo/builds/1",
+            "branch": "master",
+            "compare_url":
+                "https://github.com/owner/repo/compare/master...develop",
+            "committer_name": "J. Random Hacker",
+            "committer_email": "jrandom@example.com",
+            "message": "the commit message",
+            "repository": {
+                "name": "repo",
+            }
+        }
+        self._callFUT(context, request, payload)
+        self.assertEqual(len(mailer.outbox), 1)
+        message = mailer.outbox[0]
+        self.assertEqual(message['To'], ['foo@example.com'])
+        self.assertEqual(message['Subject'], 'OK: repo [Travis-CI]')
+
+    def test_OK_fixed(self):
+        mailer = self._getMailer()
+        root = testing.DummyResource()
+        owner = root['owner'] = testing.DummyResource()
+        context = root['repo'] = testing.DummyResource()
+        request = testing.DummyRequest()
+        payload = {
+            "type": "push",
+            "status": 0,
+            "status_message": "Fixed",
+            "build_url": "https://travis-ci.org/owner/repo/builds/1",
+            "branch": "master",
+            "compare_url":
+                "https://github.com/owner/repo/compare/master...develop",
+            "committer_name": "J. Random Hacker",
+            "committer_email": "jrandom@example.com",
+            "message": "the commit message",
+            "repository": {
+                "name": "repo",
+            }
+        }
+        self._callFUT(context, request, payload)
+        self.assertEqual(len(mailer.outbox), 1)
+        message = mailer.outbox[0]
+        self.assertEqual(message['To'], ['foo@example.com'])
+        self.assertEqual(message['Subject'], 'OK: repo [Travis-CI]')
+
+    def test_FAILED_failed(self):
+        mailer = self._getMailer()
+        root = testing.DummyResource()
+        owner = root['owner'] = testing.DummyResource()
+        context = root['repo'] = testing.DummyResource()
+        request = testing.DummyRequest()
+        payload = {
+            "type": "push",
+            "status": 1,
+            "status_message": "Failed",
+            "build_url": "https://travis-ci.org/owner/repo/builds/1",
+            "branch": "master",
+            "compare_url":
+                "https://github.com/owner/repo/compare/master...develop",
+            "committer_name": "J. Random Hacker",
+            "committer_email": "jrandom@example.com",
+            "message": "the commit message",
+            "repository": {
+                "name": "repo",
+            }
+        }
+        self._callFUT(context, request, payload)
+        self.assertEqual(len(mailer.outbox), 1)
+        message = mailer.outbox[0]
+        self.assertEqual(message['To'], ['foo@example.com'])
+        self.assertEqual(message['Subject'], 'FAILED: repo [Travis-CI]')
+
+    def test_FAILED_broken(self):
+        mailer = self._getMailer()
+        root = testing.DummyResource()
+        owner = root['owner'] = testing.DummyResource()
+        context = root['repo'] = testing.DummyResource()
+        request = testing.DummyRequest()
+        payload = {
+            "type": "push",
+            "status": 1,
+            "status_message": "Broken",
+            "build_url": "https://travis-ci.org/owner/repo/builds/1",
+            "branch": "master",
+            "compare_url":
+                "https://github.com/owner/repo/compare/master...develop",
+            "committer_name": "J. Random Hacker",
+            "committer_email": "jrandom@example.com",
+            "message": "the commit message",
+            "repository": {
+                "name": "repo",
+            }
+        }
+        self._callFUT(context, request, payload)
+        self.assertEqual(len(mailer.outbox), 1)
+        message = mailer.outbox[0]
+        self.assertEqual(message['To'], ['foo@example.com'])
+        self.assertEqual(message['Subject'], 'FAILED: repo [Travis-CI]')
+
+    def test_FAILED_still_failing(self):
+        mailer = self._getMailer()
+        root = testing.DummyResource()
+        owner = root['owner'] = testing.DummyResource()
+        context = root['repo'] = testing.DummyResource()
+        request = testing.DummyRequest()
+        payload = {
+            "type": "push",
+            "status": 1,
+            "status_message": "Still Failing",
+            "build_url": "https://travis-ci.org/owner/repo/builds/1",
+            "branch": "master",
+            "compare_url":
+                "https://github.com/owner/repo/compare/master...develop",
+            "committer_name": "J. Random Hacker",
+            "committer_email": "jrandom@example.com",
+            "message": "the commit message",
+            "repository": {
+                "name": "repo",
+            }
+        }
+        self._callFUT(context, request, payload)
+        self.assertEqual(len(mailer.outbox), 1)
+        message = mailer.outbox[0]
+        self.assertEqual(message['To'], ['foo@example.com'])
+        self.assertEqual(message['Subject'], 'FAILED: repo [Travis-CI]')
 
 
 class Test_webook(unittest.TestCase):
@@ -128,8 +298,8 @@ class Test_webook(unittest.TestCase):
         from .models import Root
         PAYLOAD = {}
         _called_with = []
-        def _generator(registry, owner, repo, payload):
-            _called_with.append((registry, owner, repo, payload))
+        def _generator(context, request, payload):
+            _called_with.append((context, request, payload))
         context = Root()
         request = testing.DummyRequest()
         request.headers['Travis-Repo-Slug'] = 'owner/repo'
@@ -137,7 +307,7 @@ class Test_webook(unittest.TestCase):
         info = self._callFUT(context, request, generator=_generator)
         self.assertEqual(list(context['owner']['repo']), [PAYLOAD])
         self.assertEqual(_called_with,
-                         [(request.registry, 'owner', 'repo', PAYLOAD)])
+                         [(context, request, PAYLOAD)])
 
 
 class Test_get_main_template(unittest.TestCase):
