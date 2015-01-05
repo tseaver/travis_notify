@@ -1,6 +1,7 @@
 from email.message import Message
 from hashlib import sha256
 from json import loads
+import logging
 
 from pyramid.httpexceptions import HTTPForbidden
 from pyramid.renderers import get_renderer
@@ -15,6 +16,8 @@ try:
     text_type = unicode
 except NameError:  # pragma: no cover
     text_type = str
+
+logger = logging.getLogger('travis_notify')
 
 
 class TravisAuthorizationCheck(object):
@@ -54,9 +57,15 @@ class TravisAuthorizationCheck(object):
         slug = request.headers.get('Travis-Repo-Slug')
 
         if auth is None and slug is None:  # not for us.
+            logger.debug('TAC: no auth or slug')
             return False
 
+        if auth is None:   # bad protocol, no donut!
+            logger.debug('TAC: no auth but slug')
+            raise HTTPForbidden()
+
         if auth is None or slug is None:   # bad protocol, no donut!
+            logger.debug('TAC: auth but no slug')
             raise HTTPForbidden()
 
         mashed = slug + self.token
@@ -64,8 +73,10 @@ class TravisAuthorizationCheck(object):
             mashed = mashed.encode('utf-8')
 
         if auth != sha256(mashed).hexdigest():  # wicked, evil, naughty!
+            logger.debug('TAC: auth / slug mismatch')
             raise HTTPForbidden()
 
+        logger.debug('TAC: auth / slug match')
         return True
 
 
