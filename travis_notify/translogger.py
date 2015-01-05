@@ -4,6 +4,11 @@
 Middleware for logging requests, using Apache combined log format
 """
 
+def asbool(x):
+    if isinstance(x, str):
+        return x.lower() in ('y', 'yes', 'true', '1')
+    return bool(x)
+
 import logging
 import time
 import urllib
@@ -50,7 +55,7 @@ class TransLogger(object):
 
     def __call__(self, environ, start_response):
         start = time.localtime()
-        req_uri = urllib.quote(environ.get('SCRIPT_NAME', '')
+        req_uri = urllib.parse.quote(environ.get('SCRIPT_NAME', '')
                                + environ.get('PATH_INFO', ''))
         if environ.get('QUERY_STRING'):
             req_uri += '?'+environ['QUERY_STRING']
@@ -105,10 +110,9 @@ def make_filter(
     logging_level=logging.INFO,
     setup_console_handler=True,
     set_logger_level=logging.DEBUG):
-    from paste.util.converters import asbool
-    if isinstance(logging_level, basestring):
+    if isinstance(logging_level, str):
         logging_level = logging._levelNames[logging_level]
-    if isinstance(set_logger_level, basestring):
+    if isinstance(set_logger_level, str):
         set_logger_level = logging._levelNames[set_logger_level]
     return TransLogger(
         app,
