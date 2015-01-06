@@ -168,17 +168,23 @@ def get_main_template(request):
     return main_template.implementation()
 
 
-@view_config(context=Root, renderer='templates/homepage.pt')
+@view_config(context=Root, renderer='templates/homepage.pt',
+             request_method="GET",
+            )
 def home_page(context, request):
     return {'owners': sorted(context.keys())}
 
 
-@view_config(context=Owner, renderer='templates/owner.pt')
+@view_config(context=Owner, renderer='templates/owner.pt',
+             request_method="GET",
+            )
 def owner(context, request):
     return {'name': context.__name__, 'repos': sorted(context.keys())}
 
 
-@view_config(context=Repo, renderer='templates/repo.pt')
+@view_config(context=Repo, renderer='templates/repo.pt',
+             request_method="GET",
+            )
 def repo(context, request):
     return {'name': context.__name__, 'recent': list(context.recent)}
 
